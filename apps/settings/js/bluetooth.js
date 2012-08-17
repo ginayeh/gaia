@@ -13,6 +13,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
   var gBluetoothVisibility = document.querySelector('#bluetooth-visibility small');
   var gDeviceList = document.querySelector('#bluetooth-devices');
+  var gDevice = null;
 
   var gDiscoveredDevices = new Array();
 
@@ -66,7 +67,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       };
 
       gBluetoothDefaultAdapter.ondevicefound = function(evt) {
-        dump("[Gaia] Device found!!!");
+        dump("[Gaia] Device "+ evt.device.address + " found!!!");
         var i;
         var len = gDiscoveredDevices.length;
 
@@ -83,6 +84,11 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
           }
         }
       };
+
+			gBluetoothDefaultAdapter.ondevicedisappeared = function(evt) {
+        dump("[Gaia] Device "+ evt.deviceAddress+" disappeared!!!");
+      };
+
     };
 
     req.onerror = function bt_getDefaultAdapterError() {
@@ -95,6 +101,16 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
 
   function changeBtVisibility() {
+    
+	  var req = gBluetoothDefaultAdapter.unpair(gDevice);
+    req.onsuccess = function(evt) {
+			dump("unpair success");
+    }
+    req.onerror = function(evt) {
+			dump("unpair error");
+    }	
+    return;
+
     if (!gBluetoothManager.enabled) {
       dump("Bluetooth has not enabled.");
       return;
@@ -156,18 +172,27 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
     li.onclick = function() {
       var device = gDiscoveredDevices[index];
-      var req = gBluetoothDefaultAdapter.pairTemp(device.address);
-
-      req.onsuccess = function bt_pairTempSuccess() {
-        dump("pairing request sent");
-      };
-
-      req.onerror = function() {
-        dump("error on pairing, try to unpair");
-        var req2 = gBluetoothDefaultAdapter.unpairTemp(device.address);
-      };
-
+      gDevice = device;
       dump("[Gaia] device clicked!");
+      var req_pair = gBluetoothDefaultAdapter.pair(device);
+      dump("pairing request sent: "+ device.name);
+      req_pair.onsuccess = function bt_pairSuccess() {
+        dump("pairing request success");
+        gDevice.onpropertychanged = function(evt) {
+          dump("on property changed");
+        }
+        gDevice.onconnected = function(evt) {
+          dump("on connected");
+        }
+        gDevice.ondisconnected = function(evt) {
+          dump("on disconnected");
+        }
+      };
+
+      req_pair.onerror = function() {
+        dump("error on pairing, try to unpair");
+        //var req2 = gBluetoothDefaultAdapter.unpair(device.address);
+      };
     };
 
     return li;
