@@ -107,12 +107,19 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
 		req.onsuccess = function bt_getPairedDevicesSuccess() {
 			dump("getPairedDevice Success");
-      gPairedDevices = req.result
+      gPairedDevices = req.result;
 			for (var i = 0; i < req.result.length; i++) {
 				/*for (var property in gPairedDevices[i]) {
 					dump(gPairedDevices[i][property]);
 				}*/
         dump("paired device name: " + gPairedDevices[i].name);
+        gPairedDevices[i].onconnected = function() {
+          dump("[Gaia] device " + gPairedDevices[i].name + " is Connected");
+        }
+      
+        gPairedDevices[i].ondisconnected = function() {
+          dump("[Gaia] device " + gPairedDevices[i].name + " is Disconnected");
+        }
 			}
 		}
     req.onerror = function bt_getPairedDevicesError() {
@@ -123,11 +130,14 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   function changeUnpairBT() {
     var unpairDeviceId = null;
     for (var i = 0; i < gPairedDevices.length; i++) {
-      if (gPairedDevices[i].name === "2XXPlantronics") {
+      if (gPairedDevices[i].name === "gina") {
         unpairDeviceId = i;
         dump("unpairDeviceId: " + i);
       }
     }
+    if (!unpairDeviceId)
+      return;
+
     var testReq = gBluetoothDefaultAdapter.unpair(gPairedDevices[unpairDeviceId]);
 
     testReq.onsuccess = function() {
@@ -162,23 +172,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     };
   };
 
-  function pairedItem(index, str) {
-    var a2 = document.createElement('a2');
-    a2.textContent = str;
-
-    var span2 = document.createElement('span2');
-    span2.className = 'bluetooth-search';
-
-    var label2 = document.createElement('label2');
-    label2.appendChild(span2);
-
-    var li2 = document.createElement('li2');
-    li2.appendChild(a2);
-    li2.appendChild(label2);
-
-    li2.oncli
-  };
-
   function newScanItem(index, str) {
     var a = document.createElement('a');
     a.textContent = str;
@@ -201,14 +194,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
       req.onsuccess = function bt_pairSuccess() {
         dump("[Gaia] Pairing done");
-
-        device.onconnected = function() {
-          dump("[Gaia] Connected");
-        }
-
-        device.ondisconnected = function() {
-          dump("[Gaia] Disconnected");
-        } 
       };
 
       req.onerror = function() {
