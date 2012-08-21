@@ -14,6 +14,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   var gBluetoothVisibility = document.querySelector('#bluetooth-visibility small');
   var gDeviceList = document.querySelector('#bluetooth-devices');
 
+  var gPairingDevice = null;
   var gDiscoveredDevices = new Array();
 
   // display Bluetooth power state
@@ -93,7 +94,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     };
   };
 
-
   function changeBtVisibility() {
     if (!gBluetoothManager.enabled) {
       dump("Bluetooth has not enabled.");
@@ -105,7 +105,18 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       return;
     }
 
-    dump("happy");
+    // Terrible hack to unpair previous pairing device.
+    var testReq = gBluetoothDefaultAdapter.unpair(gPairingDevice);
+
+    testReq.onsuccess = function() {
+      dump("[Gaia] Unpair done");
+    };
+
+    testReq.onerror = function() {
+      dump("[Gaia] Unpair error");
+    };
+
+    return;
 
     var req = gBluetoothDefaultAdapter.setDiscoverable(this.checked);
 
@@ -156,18 +167,20 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
     li.onclick = function() {
       var device = gDiscoveredDevices[index];
-      var req = gBluetoothDefaultAdapter.pairTemp(device.address);
+      var req = gBluetoothDefaultAdapter.pair(device);
+
+      dump("[Gaia] Start pairing")
+
+      // Keep this device object for 'unpair' using.
+      gPairingDevice = device;
 
       req.onsuccess = function bt_pairTempSuccess() {
-        dump("pairing request sent");
+        dump("[Gaia] Pairing done");
       };
 
       req.onerror = function() {
-        dump("error on pairing, try to unpair");
-        var req2 = gBluetoothDefaultAdapter.unpairTemp(device.address);
+        dump("[Gaia] Pairing failed");
       };
-
-      dump("[Gaia] device clicked!");
     };
 
     return li;
