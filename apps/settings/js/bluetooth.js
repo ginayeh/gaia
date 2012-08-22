@@ -17,7 +17,10 @@ var gBluetooth = (function(window) {
     setEnabled: function(value) {
       enabled = value;
       return { // fake DOM request
-        set onsuccess(callback) { setTimeout(callback, 500); },
+        set onsuccess(callback) {
+          //dump("setEnabled.onsuccess");
+          setTimeout(callback, 500); 
+        },
         set onerror(callback) {}
       };
     }
@@ -62,6 +65,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
     req.onsuccess = function bt_EnabledSuccess() {
       lastMozSettingValue = req.result['bluetooth.enabled'];
+      dump("bt_EnabledSuccess()");
       updatePowerState(lastMozSettingValue);
     };
   }
