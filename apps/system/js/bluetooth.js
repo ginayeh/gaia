@@ -42,9 +42,13 @@ var Bluetooth = {
       if (bluetooth.enabled == value)
         return;
 
-      var req = bluetooth.setEnabled(value);
+/*      var req = bluetooth.setEnabled(value);
       req.onsuccess = function bt_enabledSuccess() {
-        self.initDefaultAdapter();
+        dump("system app, bt_enabledSuccess");
+        window.navigator.mozBluetooth.onadapteradded = function(evt) {
+          dump("system app, onadapteradded");
+          self.initDefaultAdapter();
+        }
       };
       req.onerror = function bt_enabledError() {
         // roll back the setting value to notify the UIs
@@ -52,7 +56,7 @@ var Bluetooth = {
         settings.getLock().set({
           'bluetooth.enabled': !value
         });
-      };
+      };*/
     });
   },
 

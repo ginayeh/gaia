@@ -19,7 +19,7 @@ var gBluetooth = (function(window) {
       return { // fake DOM request
         set onsuccess(callback) {
           dump("setEnabled.onsuccess");
-          setTimeout(callback, 500);
+//          setTimeout(callback, 500);
           callback(); 
         },
         set onerror(callback) {}
@@ -41,11 +41,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   var gDiscoveredDevices = new Array();
   var gPairedDevices = new Array();
 
-  gBluetoothManager.onenabled = function(evt) {
-    dump("[Gaia] BluetoothManager get onenabled");
-//    getDefaultAdapter();
-  }
-
   // display Bluetooth power state
   function updatePowerState(value) {
     gBluetoothInfoBlock.textContent = value ? _('enabled') : _('disabled');
@@ -57,11 +52,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var req = gBluetoothManager.getDefaultAdapter();
 
     req.onsuccess = function bt_getDefaultAdapterSuccess() {
-      if (gBluetoothDefaultAdapter != null) { 
-        dump("gBluetoothDefaultAdapter exsits.");
-        return;
-      }
-
       gBluetoothDefaultAdapter = req.result;
 
       dump("Gaia got Adapter: " + gBluetoothDefaultAdapter);
@@ -245,25 +235,20 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var req = gBluetoothManager.setEnabled(this.checked);
 
     req.onsuccess = function bt_enabledSuccess() {
-      if (gBluetoothManager.enabled) {
-        dump("bt_enabledSuccess()");
-      }
-      window.setTimeout(getDefaultAdapter, 1000);
-//      getDefaultAdapter();
-
       gBluetoothManager.onadapteradded = function(evt) {
         dump("[Gaia] BluetoothManager get onadapteradded");
-//      getDefaultAdapter();
-      }
+        dump("bt_enabledSuccess()");
+        getDefaultAdapter();
 
-      updatePowerState(gBluetoothManager.enabled);
+				updatePowerState(gBluetoothManager.enabled);
 
-      var settings = window.navigator.mozSettings;
-      if (settings) {
-        settings.getLock().set({
-          'bluetooth.enabled': gBluetoothManager.enabled
-        });
-      }
+				var settings = window.navigator.mozSettings;
+				if (settings) {
+					settings.getLock().set({
+							'bluetooth.enabled': gBluetoothManager.enabled
+					});
+				}
+			}
     };
 
     req.onerror = function bt_enabledError() {
