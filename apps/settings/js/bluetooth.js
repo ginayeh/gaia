@@ -297,15 +297,23 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     //XXX mozBluetooth is not a singleton
     //so the setting in System app won't take effect here
     //https://bugzilla.mozilla.org/show_bug.cgi?id=782588
-    bluetooth.setEnabled(enabled);
-    if (enabled) {
-      //XXX there is no "bluetooth.onenabled" callback can be hooked.
-      //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
-      if (!bluetooth.enabled) {
-        setTimeout(initialDefaultAdapter, 5000);
-      } else {
-        initialDefaultAdapter();
-      }
+    var req = bluetooth.setEnabled(enabled);
+    req.onsuccess = function(evt) {
+			bluetooth.onadapteradded = function(evt) {
+				dump("[Gaia] BluetoothManager get onadapteradded");
+				dump("bt_enabledSuccess()");
+				getDefaultAdapter();
+			}
+			bluetooth.setEnabled(enabled);
+			if (enabled) {
+				//XXX there is no "bluetooth.onenabled" callback can be hooked.
+				//https://bugzilla.mozilla.org/show_bug.cgi?id=782586
+				if (!bluetooth.enabled) {
+					setTimeout(initialDefaultAdapter, 5000);
+				} else {
+					initialDefaultAdapter();
+				}
+			}
     }
   }
 
