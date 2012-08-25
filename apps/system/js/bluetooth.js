@@ -44,14 +44,14 @@ var Bluetooth = {
 
       var req = bluetooth.setEnabled(value);
       req.onsuccess = function bt_enabledSuccess() {
-        self.initDefaultAdapter();
+//        self.initDefaultAdapter();
       };
       req.onerror = function bt_enabledError() {
         // roll back the setting value to notify the UIs
         // that bluetooth has failed to enable.
-        settings.getLock().set({
+/*        settings.getLock().set({
           'bluetooth.enabled': !value
-        });
+        });*/
       };
     });
   },

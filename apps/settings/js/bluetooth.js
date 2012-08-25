@@ -27,6 +27,13 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     settings.getLock().set({'bluetooth.enabled': this.checked});
   };
 
+  function test(evt) {
+    if (!defaultAdapter)
+      return;
+    
+    dump("[Gaia] device created: " + evt.device.name + ", address: " + evt.device.address + ", paired: " + evt.device.paired + ", connected: " + evt.device.connected);
+  }
+
   function initialDefaultAdapter() {
     if (!bluetooth.enabled)
       return;
@@ -40,6 +47,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         return;
       }
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
+      defaultAdapter.ondevicecreated = test;
 
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
@@ -133,6 +141,31 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       }
       defaultAdapter.setDiscoverable(visible);
       myName = visibleName.textContent = defaultAdapter.name;
+
+      var req = defaultAdapter.getPairedDevices();
+      req.onsuccess = function bt_gotPairedDevices(evt) {
+        if (!defaultAdapter)
+          return;
+
+        var gPairedDevices = req.result;
+        dump("getPairedDevices: " + gPairedDevices.length);
+	for (var i = 0; i < gPairedDevices.length; i++) {
+          dump("device name: " + gPairedDevices[i].name);
+	  var testReq = defaultAdapter.unpair(gPairedDevices[i]);
+          testReq.onsuccess = function() {
+            dump("[Gaia] Unpair " + gPairedDevices[i].name + " done");
+          };
+
+          testReq.onerror = function() {
+            dump("[Gaia] Unpair error");
+          };
+        }
+      };
+      req.onerror = function bt_gotPairedDevicesFailed(evt) {
+
+      };
+
+      return;
     }
 
     // API
@@ -205,7 +238,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // do default actions (start discover avaliable devices)
     // when DefaultAdapter is ready.
     function initial() {
-      startDiscovery();
+//      startDiscovery();
     }
 
     // callback function when an avaliable device found
