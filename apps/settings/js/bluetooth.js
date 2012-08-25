@@ -32,6 +32,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       return;
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
+      dump("settings: defaultAdapter existed!");
       defaultAdapter = req.result;
       if (defaultAdapter == null) {
         // we can do nothing without DefaultAdapter, so set bluetooth disabled
@@ -46,6 +47,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     };
     req.onerror = function bt_getAdapterFailed() {
       // we can do nothing without DefaultAdapter, so set bluetooth disabled
+      dump("settings: defaultAdapter is null");
       settings.getLock().set({'bluetooth.enabled': false});
     }
   }
@@ -302,8 +304,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       //XXX there is no "bluetooth.onenabled" callback can be hooked.
       //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
       if (!bluetooth.enabled) {
+        dump("setTimeout");
         setTimeout(initialDefaultAdapter, 5000);
       } else {
+        dump("noTimeout");
         initialDefaultAdapter();
       }
     }

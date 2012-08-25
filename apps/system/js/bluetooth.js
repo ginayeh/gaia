@@ -66,6 +66,7 @@ var Bluetooth = {
 
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_gotDefaultAdapter(evt) {
+      dump("system app: defaultAdapter existed!");
       var adapter =
         self.defaultAdapter = req.result;
 
@@ -96,6 +97,9 @@ var Bluetooth = {
         var device = evt.device;
         device.onpropertychanged = null;
       };
+    };
+    req.onerror = function bt_noDefaultAdapter(evt) {
+      dump("system app: defaultAdapter is null");
     };
   },
 
