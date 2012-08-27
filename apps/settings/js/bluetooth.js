@@ -48,6 +48,11 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       }
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
       defaultAdapter.ondevicecreated = test;
+      defaultAdapter.onrequestconfirmation = function(evt) {
+        dump("[Gaia] onrequestconfimation, device: " + evt.deviceAddress);
+        defaultAdapter.setPairingConfirmation(evt.deviceAddress, true);
+        dump("[Gaia] setPairingConfirmation");
+      };
 
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
