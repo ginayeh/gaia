@@ -294,13 +294,19 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   //XXX hack due to the following bugs.
   function hackForTest(enabled) {
+    dump("[Gaia] enabled: " + enabled);
     if (enabled) {
-      //XXX there is no "bluetooth.onenabled" callback can be hooked.
-      //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
-      if (!bluetooth.enabled) {
-        setTimeout(initialDefaultAdapter, 5000);
-      } else {
-        initialDefaultAdapter();
+      bluetooth.onenabled = function(evt) {
+        dump("[Gaia] onenabled: " + evt.result);
+        bluetooth.onadapteradded = function(evt2) {
+          dump("[Gaia] onadapteradded");
+          initialDefaultAdapter();
+        }
+      };
+    }
+    else {
+      bluetooth.ondisabled = function(evt) {
+        dump("[Gaia] ondisabled");
       }
     }
   }
