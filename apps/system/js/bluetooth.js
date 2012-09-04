@@ -39,7 +39,7 @@ var Bluetooth = {
         return;
       }
 
-      self.hackForTest(value);
+//      self.hackForTest(value);
     });
   },
 
