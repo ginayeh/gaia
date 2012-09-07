@@ -30,6 +30,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   function initialDefaultAdapter() {
     if (!bluetooth.enabled)
       return;
+
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
       defaultAdapter = req.result;
@@ -39,6 +40,21 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         return;
       }
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
+/*      defaultAdapter.onrequestconfirmation = function(evt) {
+        dump("[Gaia] onrequestconfimation, device: " + evt.deviceAddress);
+        defaultAdapter.setPairingConfirmation(evt.deviceAddress, true);
+        dump("[Gaia] setPairingConfirmation");
+      };
+      defaultAdapter.onrequestpasskey = function(evt) {
+        dump("[Gaia] onrequestconfimation, device: " + evt.deviceAddress);
+        defaultAdapter.setPairingConfirmation(evt.deviceAddress, true);
+        dump("[Gaia] setPairingConfirmation");
+      };
+      defaultAdapter.onrequestpincode = function(evt) {
+        dump("[Gaia] onrequestconfimation, device: " + evt.deviceAddress);
+        defaultAdapter.setPairingConfirmation(evt.deviceAddress, true);
+        dump("[Gaia] setPairingConfirmation");
+      };*/
 
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
@@ -143,11 +159,13 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   // device list
   var gDeviceList = (function deviceList() {
+    var pairList = document.querySelector('#bluetooth-paired-devices');
     var list = document.querySelector('#bluetooth-devices');
     var searchAgainBtn = document.querySelector('#bluetooth-search-again');
     var searchingItem = document.querySelector('#bluetooth-searching');
     var enableMsg = document.querySelector('#bluetooth-enable-msg');
     var index = [];
+    var pairIndex = [];
 
     searchAgainBtn.onclick = function searchAgainClicked() {
       updateDeviceList(true); // reset network list
@@ -171,6 +189,23 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       li.onclick = function() {
         //XXX should call pair() here
         //but hasn't been implemented in the backend.
+/*        var req;
+        if (device.paired) {
+          req = defaultAdapter.unpair(device);
+          dump("pairing request sent");
+        }
+        else {
+          req = defaultAdapter.pair(device);
+          dump("unpairing request sent");
+        }
+        req.onsuccess = function bt_pairSuccess() {
+          dump("request success");
+        };
+        req.onerror = function() {
+          dump("request error");
+        };
+
+        dump("[Gaia] device clicked!");*/
       };
       return li;
     }
@@ -181,6 +216,11 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         list.removeChild(list.lastChild);
       }
       index = [];
+
+      while (pairList.hasChildNodes()) {
+        pairList.removeChild(pairList.lastChild);
+      }
+      pairIndex = [];
     }
 
 
@@ -204,6 +244,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // when DefaultAdapter is ready.
     function initial() {
       startDiscovery();
+      getPairedDevice();
     }
 
     // callback function when an avaliable device found
@@ -218,6 +259,17 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       }
       list.appendChild(newListItem(evt.device));
       index.push(evt.device.address);
+    }
+
+    function getPairedDevice() {
+      var req = defaultAdapter.getPairedDevices();
+      req.onsuccess = function bt_getPairedSuccess() {
+        pairIndex = req.result;
+        var i = length = pairIndex.length;
+        for (var i = 0; i < length; i++) {
+          pairList.appendChild(newListItem(pairIndex[i]));
+        }
+      };
     }
 
     function startDiscovery() {
@@ -294,19 +346,43 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   //XXX hack due to the following bugs.
   function hackForTest(enabled) {
-    dump("[Gaia] enabled: " + enabled);
+    var str = (enabled == true) ? "Enabling" : "Disabling";
+    dump("[Gaia] User " + str);
     if (enabled) {
       bluetooth.onenabled = function(evt) {
-        dump("[Gaia] onenabled: " + evt.result);
-        bluetooth.onadapteradded = function(evt2) {
-          dump("[Gaia] onadapteradded");
-          initialDefaultAdapter();
+        dump("[Gaia] event onenabled");
+        if (bluetooth.enabled) {
+          dump("[Gaia] enabled success");
+          bluetooth.onadapteradded = function(evt2) {
+            dump("[Gaia] onadapteradded");
+            initialDefaultAdapter();
+
+            navigator.mozSetMessageHandler('bluetooth-requestconfirmation', function gotMessage(message) {
+              dump("[Gaia] bluetooth-requestconfirmation got message: " + message.deviceAddress + ", " + message.passkey + ", " + message.name);
+//              defaultAdapter.setPairingConfirmation(message.deviceAddress, true);
+            });
+            navigator.mozSetMessageHandler('bluetooth-requestpasskey', function gotMessage(message) {
+              dump("[Gaia] bluetooth-requestpasskey got message: " + message.deviceAddress + ", " + message.name);
+            });
+            navigator.mozSetMessageHandler('bluetooth-requestpincode', function gotMessage(message) {
+              dump("[Gaia] bluetooth-requestpincode got message: " + message.deviceAddress + ", " + message.name);
+            });
+          }       
+        }
+        else {
+          dump("[Gaia] enabled fail");
         }
       };
     }
     else {
       bluetooth.ondisabled = function(evt) {
-        dump("[Gaia] ondisabled");
+        dump("[Gaia] event ondisabled");
+        if (!bluetooth.enabled) {
+          dump("[Gaia] disable success");
+        }
+        else {
+          dump("[Gaia] disable fail");
+        }
       }
     }
   }
