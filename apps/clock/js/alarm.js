@@ -386,6 +386,7 @@ var AlarmManager = {
   init: function am_init() {
     var self = this;
     navigator.mozSetMessageHandler('alarm', function gotMessage(message) {
+      dump("alarm got message: " + message);
       self.onAlarmFiredHandler(message);
     });
     this.updateAlarmStatusBar();
