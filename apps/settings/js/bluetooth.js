@@ -171,6 +171,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       li.onclick = function() {
         //XXX should call pair() here
         //but hasn't been implemented in the backend.
+        dump("[Gaia] click device " + device.name);
       };
       return li;
     }
@@ -297,12 +298,34 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     if (enabled) {
       //XXX there is no "bluetooth.onenabled" callback can be hooked.
       //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
-      if (!bluetooth.enabled) {
+/*      if (!bluetooth.enabled) {
         setTimeout(initialDefaultAdapter, 5000);
       } else {
         initialDefaultAdapter();
-      }
+      }*/
+      bluetooth.onenabled = function(evt) {
+        dump("[Gaia] onenabled");
+        if (bluetooth.enabled) {
+          dump("[Gaia] toggle success");
+          bluetooth.onadapteradded = function(evt) {
+					  dump("[Gaia] onadapteradded");
+            initialDefaultAdapter();
+          };
+        } else {          
+          dump("[Gaia] toggle failed");
+        }
+      };
+    } else {
+      bluetooth.ondisabled = function(evt) {
+        dump("[Gaia] ondisabled");
+        if (!bluetooth.enabled) {
+          dump("[Gaia] toggle success");
+        } else {
+          dump("[Gaia] toggle failed");         
+        }
+      };
     }
+    
   }
 
 });

@@ -44,15 +44,41 @@ var Bluetooth = {
       if (value !== enabled && value) {
         // Setting value is not actually synced with Bluetooth device,
         // let's wait a bit before getting adapter.
-        if (!bluetooth.enabled) {
+/*        if (!bluetooth.enabled) {
           setTimeout(function timeout() {
             self.initDefaultAdapter();
           }, 5000);
 
           return;
+        }*/
+    if (enabled) {
+      bluetooth.onenabled = function(evt) {
+        dump("[Gaia] onenabled");
+        if (bluetooth.enabled) {
+          dump("[Gaia] toggle success");
+          bluetooth.onadapteradded = function(evt) {
+            dump("[Gaia] onadapteradded");
+            initialDefaultAdapter();
+          };
+        } else {
+          dump("[Gaia] toggle failed");
         }
+      };
+    } else {
+      bluetooth.ondisabled = function(evt) {
+        dump("[Gaia] ondisabled");
+        if (!bluetooth.enabled) {
+          dump("[Gaia] toggle success");
+        } else {
+          dump("[Gaia] toggle failed");
+        }
+      };
+    }
 
-        self.initDefaultAdapter();
+  }
+
+        
+//        self.initDefaultAdapter();
       }
 
       enabled = value;
