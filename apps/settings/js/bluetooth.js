@@ -28,16 +28,19 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   };
 
   function initialDefaultAdapter() {
+    dump("[Gaia] initialDefaultAdapter");
     if (!bluetooth.enabled)
       return;
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
+      dump("[Gaia] getDefaultAdapter");
       defaultAdapter = req.result;
       if (defaultAdapter == null) {
         // we can do nothing without DefaultAdapter, so set bluetooth disabled
         settings.getLock().set({'bluetooth.enabled': false});
         return;
       }
+//      getPairedDevices();
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
 
       // initial related components that need defaultAdapter.
@@ -45,9 +48,26 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       gDeviceList.initWithAdapter();
     };
     req.onerror = function bt_getAdapterFailed() {
+      dump("[Gaia] failed to getDefaultAdapter");
       // we can do nothing without DefaultAdapter, so set bluetooth disabled
       settings.getLock().set({'bluetooth.enabled': false});
     }
+  }
+
+
+  function getPairedDevices() {
+    dump("[Gaia] getPairedDevices");
+    var req2 = defaultAdapter.getPairedDevices();
+    req2.onsuccess = function() {
+      var devices = req.result;
+      dump("[Gaia] " devices.length + " paired devices");
+      for (var i = 0; i < devices.length; i++) {
+        dump("[Gaia] device name = " + devices[i][name]);
+      }
+    };
+    req2.onerror = function() {
+      dump("[Gaia] failed to getPairedDevices");
+    };
   }
 
   // device information
@@ -308,7 +328,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         if (bluetooth.enabled) {
           dump("[Gaia] toggle success");
           bluetooth.onadapteradded = function(evt) {
-					  dump("[Gaia] onadapteradded");
+            dump("[Gaia] onadapteradded");
             initialDefaultAdapter();
           };
         } else {          
