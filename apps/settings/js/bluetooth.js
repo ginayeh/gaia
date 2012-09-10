@@ -10,6 +10,20 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   var bluetooth = window.navigator.mozBluetooth;
   var defaultAdapter = null;
 
+/*  navigator.mozSetMessageHandler('bluetooth-requestconfirmation', function gotMessage(message) {
+    dump("[Gaia] bluetooth-requestconfirmation got message: " + message.deviceAddress + ", " + message.passkey + ", " + message.name);
+//              defaultAdapter.setPairingConfirmation(message.deviceAddress,
+//              true);
+  });
+
+  navigator.mozSetMessageHandler('bluetooth-requestpasskey', function gotMessage(message) {
+    dump("[Gaia] bluetooth-requestpasskey got message: " + message.deviceAddress + ", " + message.name);
+  });
+
+  navigator.mozSetMessageHandler('bluetooth-requestpincode', function gotMessage(message) {
+    dump("[Gaia] bluetooth-requestpincode got message: " + message.deviceAddress + ", " + message.name);
+  });*/
+
   if (!settings || !bluetooth)
     return;
 
@@ -71,7 +85,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   }
 
 
-  function getPairedDevices() {
+/*  function getPairedDevices() {
     dump("[Gaia] getPairedDevices");
     var req2 = defaultAdapter.getPairedDevices();
     req2.onsuccess = function() {
@@ -84,7 +98,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     req2.onerror = function() {
       dump("[Gaia] failed to getPairedDevices");
     };
-  }
+  }*/
 
   // device information
   var gMyDeviceInfo = (function deviceInfo() {
@@ -179,13 +193,13 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   // device list
   var gDeviceList = (function deviceList() {
-    var pairList = document.querySelector('#bluetooth-paired-devices');
+//    var pairList = document.querySelector('#bluetooth-paired-devices');
     var list = document.querySelector('#bluetooth-devices');
     var searchAgainBtn = document.querySelector('#bluetooth-search-again');
     var searchingItem = document.querySelector('#bluetooth-searching');
     var enableMsg = document.querySelector('#bluetooth-enable-msg');
     var index = [];
-    var pairIndex = [];
+//    var pairIndex = [];
 
     searchAgainBtn.onclick = function searchAgainClicked() {
       updateDeviceList(true); // reset network list
@@ -238,10 +252,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       }
       index = [];
 
-      while (pairList.hasChildNodes()) {
+/*      while (pairList.hasChildNodes()) {
         pairList.removeChild(pairList.lastChild);
       }
-      pairIndex = [];
+      pairIndex = []; */
     }
 
 
@@ -265,7 +279,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // when DefaultAdapter is ready.
     function initial() {
       startDiscovery();
-      getPairedDevice();
+      //getPairedDevice();
     }
 
     // callback function when an avaliable device found
@@ -282,7 +296,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       index.push(evt.device.address);
     }
 
-    function getPairedDevice() {
+/*    function getPairedDevice() {
       var req = defaultAdapter.getPairedDevices();
       req.onsuccess = function bt_getPairedSuccess() {
         pairIndex = req.result;
@@ -291,7 +305,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
           pairList.appendChild(newListItem(pairIndex[i]));
         }
       };
-    }
+    }*/
 
     function startDiscovery() {
       if (!defaultAdapter)

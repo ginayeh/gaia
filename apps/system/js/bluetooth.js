@@ -36,11 +36,12 @@ var Bluetooth = {
           settings.getLock().set({
             'bluetooth.enabled': false
           });
-        }
-
+        } 
         return;
       }
 
+     dump("[Gaia] settings: " + value);
+     dump("[Gaia] enabled: " + enabled);
       if (value !== enabled && value) {
         // Setting value is not actually synced with Bluetooth device,
         // let's wait a bit before getting adapter.
@@ -59,6 +60,24 @@ var Bluetooth = {
           bluetooth.onadapteradded = function(evt) {
             dump("[Gaia] onadapteradded");
             initialDefaultAdapter();
+            navigator.mozSetMessageHandler('bluetooth-requestconfirmation',
+function gotMessage(message) {
+              dump("[Gaia] bluetooth-requestconfirmation got message: " +
+message.deviceAddress + ", " + message.passkey + ", " + message.name);
+//              defaultAdapter.setPairingConfirmation(message.deviceAddress,
+//              true);
+            });
+            navigator.mozSetMessageHandler('bluetooth-requestpasskey', function
+gotMessage(message) {
+              dump("[Gaia] bluetooth-requestpasskey got message: " +
+message.deviceAddress + ", " + message.name);
+            });
+            navigator.mozSetMessageHandler('bluetooth-requestpincode', function
+gotMessage(message) {
+              dump("[Gaia] bluetooth-requestpincode got message: " +
+message.deviceAddress + ", " + message.name);
+            });
+
           };
         } else {
           dump("[Gaia] toggle failed");
@@ -78,9 +97,7 @@ var Bluetooth = {
   }
 
         
-//        self.initDefaultAdapter();
       }
-
       enabled = value;
     });
   },
