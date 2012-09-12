@@ -28,10 +28,12 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   };
 
   function initialDefaultAdapter() {
+    dump("[Gaia] initialDefaultAdapter");
     if (!bluetooth.enabled)
       return;
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
+      dump("[Gaia] getDefaultAdapter");
       defaultAdapter = req.result;
       if (defaultAdapter == null) {
         // we can do nothing without DefaultAdapter, so set bluetooth disabled
@@ -39,6 +41,12 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         return;
       }
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
+      defaultAdapter.ondevicecreated = function(evt){
+        var device = evt.result;
+        dump("[Gaia] ondevicecreated");
+        dump("[Gaia] device name: " + device.name + ", " + device.address + ", " + device.icon);
+      };
+
 
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
@@ -46,6 +54,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     };
     req.onerror = function bt_getAdapterFailed() {
       // we can do nothing without DefaultAdapter, so set bluetooth disabled
+      dump("[Gaia] failed to getDefaultAdapter");
       settings.createLock().set({'bluetooth.enabled': false});
     }
   }
@@ -295,15 +304,45 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   //XXX hack due to the following bugs.
   function hackForTest(enabled) {
     if (enabled) {
-      //XXX there is no "bluetooth.onenabled" callback can be hooked.
-      //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
-      if (!bluetooth.enabled) {
-        setTimeout(initialDefaultAdapter, 5000);
-      } else {
-        initialDefaultAdapter();
-      }
+      bluetooth.onenabled = function(evt) {
+        dump("[Gaia] onenabled");
+        if (bluetooth.enabled) {
+          dump("[Gaia] toggle success");
+          bluetooth.onadapteradded = function(evt) {
+            dump("[Gaia] onadapteradded");
+            initialDefaultAdapter();
+
+            navigator.mozSetMessageHandler('bluetooth-requestconfirmation', function gotMessage(message) {
+              dump("[Gaia] bluetooth-requestconfirmation got message: " + message.deviceAddress + ", " + message.passkey + ", " + message.name);
+//              defaultAdapter.setPairingConfirmation(message.deviceAddress, false);
+            });
+            navigator.mozSetMessageHandler('bluetooth-requestpasskey', function gotMessage(message) {
+              dump("[Gaia] bluetooth-requestpasskey got message: " + message.deviceAddress + ", " + message.name);
+            });
+            navigator.mozSetMessageHandler('bluetooth-requestpincode', function gotMessage(message) {
+              dump("[Gaia] bluetooth-requestpincode got message: " + message.deviceAddress + ", " + message.name);
+            });
+            navigator.mozSetMessageHandler('bluetooth-authorize', function gotMessage(message) {
+              dump("[Gaia] bluetooth-authorize got message: " + message.deviceAddress + ", " + message.uuid);
+            });
+            navigator.mozSetMessageHandler('bluetooth-cancel', function gotMessage(message) {
+              dump("[Gaia] bluetooth-cacel got message");
+            });
+          };
+        } else {
+          dump("[Gaia] toggle failed");
+        }
+      };
+    } else {
+      bluetooth.ondisabled = function(evt) {
+        dump("[Gaia] ondisabled");
+        if (!bluetooth.enabled) {
+          dump("[Gaia] toggle success");
+        } else {
+          dump("[Gaia] toggle failed");
+        }
+      };
     }
   }
-
 });
 
