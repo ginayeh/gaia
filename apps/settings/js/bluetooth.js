@@ -51,12 +51,25 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
       gDeviceList.initWithAdapter();
+      getPairedDevices();
     };
     req.onerror = function bt_getAdapterFailed() {
       // we can do nothing without DefaultAdapter, so set bluetooth disabled
       dump("[Gaia] failed to getDefaultAdapter");
       settings.createLock().set({'bluetooth.enabled': false});
     }
+  }
+
+  function getPairedDevices() {
+    dump("[Gaia] getPairedDevices");
+    var req = defaultAdapter.getPairedDevices();
+    req.onsuccess = function(evt) {
+      dump("[Gaia] " + req.result.length + " paird devices.");
+    };
+    req.onerror = function(evt) {
+      dump("[Gaia] failed to get paird devices.");
+
+    };
   }
 
   // device information
