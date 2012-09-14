@@ -51,7 +51,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
       gDeviceList.initWithAdapter();
-      getPairedDevices();
     };
     req.onerror = function bt_getAdapterFailed() {
       // we can do nothing without DefaultAdapter, so set bluetooth disabled
@@ -108,6 +107,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
     visibleCheckBox.onchange = function changeDiscoverable() {
       setDiscoverable(this.checked);
+      getPairedDevices();
     };
 
     renameButton.onclick = function renameClicked() {
@@ -368,8 +368,8 @@ bs
             navigator.mozSetMessageHandler('bluetooth-cancel', function gotMessage(message) {
               dump("[Gaia] bluetooth-cacel got message");
             });
-            navigator.mozSetMessageHandler('bluetooth-pairing-success', function gotMessage(message) {
-              dump("[Gaia] bluetooth-pairing-success got message: " + message.paired);
+            navigator.mozSetMessageHandler('bluetooth-pairingstatuschanged', function gotMessage(message) {
+              dump("[Gaia] bluetooth-pairingstatuschanged got message: " + message.paired);
             });
           };
         } else {
