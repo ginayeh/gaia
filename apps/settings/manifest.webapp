@@ -84,5 +84,5 @@
     "60": "/style/icons/60/Settings.png"
   },
   "orientation": "portrait-primary",
-  "messages": ["bluetooth-requestconfirmation", "bluetooth-requestpasskey", "bluetooth-requestpincode", "bluetooth-authorize", "bluetooth-cancel"]
+  "messages": ["bluetooth-requestconfirmation", "bluetooth-requestpasskey", "bluetooth-requestpincode", "bluetooth-authorize", "bluetooth-cancel", "bluetooth-pairing-success"]
 }

@@ -65,10 +65,34 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var req = defaultAdapter.getPairedDevices();
     req.onsuccess = function(evt) {
       dump("[Gaia] " + req.result.length + " paird devices.");
+      var devices = req.result;
+      for (var i = 0; i < devices.length; i++) {
+        unpair(devices[i]);
+      }
     };
     req.onerror = function(evt) {
       dump("[Gaia] failed to get paird devices.");
+    };
+  }
 
+  function pair(device) {
+    dump("[Gaia] click " + device.name);
+    var req = defaultAdapter.pair(device);
+    req.onsuccess = function(evt) {
+      dump("[Gaia] pair device " + device.name + " success");
+    }
+    req.onerror = function(evt) {
+      dump("[Gaia] pair device " + device.name + " failed");
+    }
+  }
+
+  function unpair(device) {
+    var req = defaultAdapter.unpair(device);
+    req.onsuccess = function(evt) {
+      dump("[Gaia] unpair device " + device.name + " success");
+    };
+    req.onerror = function(evt) {
+      dump("[Gaia] unpair device " + device.name + " failed");
     };
   }
 
@@ -193,6 +217,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       li.onclick = function() {
         //XXX should call pair() here
         //but hasn't been implemented in the backend.
+        pair(device);
       };
       return li;
     }
@@ -327,8 +352,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
             navigator.mozSetMessageHandler('bluetooth-requestconfirmation', function gotMessage(message) {
               dump("[Gaia] bluetooth-requestconfirmation got message: " + message.deviceAddress + ", " + message.passkey + ", " + message.name);
-//              defaultAdapter.setPairingConfirmation(message.deviceAddress, false);
+              defaultAdapter.setPairingConfirmation(message.deviceAddress, true);
             });
+bs
+
             navigator.mozSetMessageHandler('bluetooth-requestpasskey', function gotMessage(message) {
               dump("[Gaia] bluetooth-requestpasskey got message: " + message.deviceAddress + ", " + message.name);
             });
@@ -340,6 +367,9 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
             });
             navigator.mozSetMessageHandler('bluetooth-cancel', function gotMessage(message) {
               dump("[Gaia] bluetooth-cacel got message");
+            });
+            navigator.mozSetMessageHandler('bluetooth-pairing-success', function gotMessage(message) {
+              dump("[Gaia] bluetooth-pairing-success got message: " + message.paired);
             });
           };
         } else {
