@@ -240,31 +240,41 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       // Bind message handler for incoming pairing requests
       navigator.mozSetMessageHandler('bluetooth-requestconfirmation',
         function bt_gotConfirmationMessage(message) {
+        dump("[Gaia] bluetooth-requestconfirmation, address = " +
+message.deviceAddress);
           onRequestConfirmation(message);
         }
       );
       navigator.mozSetMessageHandler('bluetooth-requestpincode',
         function bt_gotPincodeMessage(message) {
+        dump("[Gaia] bluetooth-requestpincode, address = " + message.deviceAddress);
           onRequestPincode(message);
         }
       );
 
       navigator.mozSetMessageHandler('bluetooth-requestpasskey',
         function bt_gotPasskeyMessage(message) {
+        dump("[Gaia] bluetooth-requestpasskey, address = " + message.deviceAddress);
           onRequestPasskey(message);
         }
       );
 
       navigator.mozSetMessageHandler('bluetooth-cancel',
         function bt_gotCancelMessage(message) {
+        dump("[Gaia] bluetooth-cancel");
           if (childWindow) {
             childWindow.close();
           }
-          aItem.querySelector('small').textContent = device.address;
+//          aItem.querySelector('small').textContent = device.address;
           //XXX show a "pair failed" alert
         }
       );
-
+      navigator.mozSetMessageHandler('bluetooth-pairingstatuschanged',
+        function bt_gotPairingMessage(message) {
+        dump("[Gaia] bluetooth-pairingstatuschanged, paired = " +
+message.paired);
+        }
+      );
       getPairedDevice();
       startDiscovery();
     }
@@ -353,6 +363,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         childWindow.PairView.init('passkey', device);
       };
     }
+    
+    function unpair(device) {
+      defaultAdapter.unpair(device);
+    }
 
     function getPairedDevice() {
       pairList.clear();
@@ -377,6 +391,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
             pairList.list.appendChild(aItem);
             pairList.showlist.appendChild(aItem.cloneNode(true));
           })(pairList.index[i]);
+          unpair(device);
         }
         var text = pairList.index[0].name;
         if (length > 1) {
