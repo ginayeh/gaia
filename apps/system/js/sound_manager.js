@@ -5,14 +5,14 @@
 
 (function() {
   window.addEventListener('volumeup', function() {
-    if (onBTEarphoneConnected() && onCall()) {
+    if (onBTEarphoneConnected()) {
       changeVolume(1, 'bt_sco');
     } else {
       changeVolume(1);
     }
   });
   window.addEventListener('volumedown', function() {
-    if (onBTEarphoneConnected() && onCall()) {
+    if (onBTEarphoneConnected()) {
       changeVolume(-1, 'bt_sco');
     } else {
       changeVolume(-1);
@@ -156,6 +156,13 @@
   }
 
   function changeVolume(delta, channel) {
+    // Hack for PTS testing
+    if (channel === 'bt_sco' && delta == -1) {
+      var rv = navigator.mozBluetooth.isConnected(0x0000);
+      dump("[sound] create sco result: " + rv);
+      return;
+    }
+
     channel = channel ? channel : getChannel();
 
     muteState = getVolumeState(currentVolume[channel], delta, channel);
