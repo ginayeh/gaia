@@ -538,7 +538,11 @@ var OnCallHandler = (function onCallHandler() {
 
     callToEnd.addEventListener('disconnected', function disconnected() {
       callToEnd.removeEventListener('disconnected', disconnected);
-      callToAnswer.answer();
+      if (callToAnswer.state === 'held') {
+        callToAnswer.resume();
+      } else {
+        callToAnswer.answer();
+      }
     });
     callToEnd.hangUp();
 
