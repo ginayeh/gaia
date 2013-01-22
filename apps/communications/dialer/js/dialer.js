@@ -108,6 +108,7 @@ var CallHandler = (function callHandler() {
   }
   window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
 
+  var _number = '';
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
     var command = message['command'];
@@ -122,12 +123,27 @@ var CallHandler = (function callHandler() {
         });
       });
       CallHandler.call('##########');
+      _number = '';
       return;
     } else if (partialCommand2 === 'ATD>') {
       CallHandler.call('##########');
+      _number = '';
+      return;
     } else if (partialCommand === 'ATD') {
       var phoneNumber = command.substring(3);
+      _number = '';
       CallHandler.call(phoneNumber);
+      return;
+    } else if (partialCommand === 'VTS') {
+      var key = command.substring(4);
+      dump("[Dialer] key: " + key);
+
+//      sendCommandToKeypad();
+      _number += key;
+      dump("[Dialer] _number: " + _number);
+      KeypadManager.updatePhoneNumber(_number, 'begin', true);
+      var telephony = navigator.mozTelephony;
+      telephony.startTone(key);
       return;
     }
 
@@ -154,6 +170,7 @@ var CallHandler = (function callHandler() {
     @command: The specific message to each kind of type
   */
   function sendCommandToCallScreen(type, command) {
+    _number = '';
     if (!callScreenWindow) {
       return;
     }
