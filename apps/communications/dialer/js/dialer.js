@@ -112,6 +112,7 @@ var CallHandler = (function callHandler() {
   function btCommandHandler(message) {
     var command = message['command'];
     var partialCommand = command.substring(0, 3);
+    var partialCommand2 = command.substring(0, 4);
     if (command === 'BLDN') {
       RecentsDBManager.init(function() {
         RecentsDBManager.getLast(function(lastRecent) {
@@ -120,7 +121,10 @@ var CallHandler = (function callHandler() {
           }
         });
       });
+      CallHandler.call('##########');
       return;
+    } else if (partialCommand2 === 'ATD>') {
+      CallHandler.call('##########');
     } else if (partialCommand === 'ATD') {
       var phoneNumber = command.substring(3);
       CallHandler.call(phoneNumber);
