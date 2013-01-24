@@ -72,7 +72,8 @@ onLocalized(function bluetoothSettings() {
     var renameButton = document.getElementById('rename-device');
 
     var visibleTimeout = null;
-    var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
+//    var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
+    var visibleTimeoutTime = 1000;
     var myName = '';
 
     visibleCheckBox.onchange = function changeDiscoverable() {
@@ -80,8 +81,22 @@ onLocalized(function bluetoothSettings() {
     };
 
     renameButton.onclick = function renameBtnClicked() {
+      dump("[settings] rename onclick");
+      var req2 = defaultAdapter.getName('xxx');
+      var name = '';
+      req2.onsuccess = function() {
+        dump("[settings] getName success");
+        for (var property in req2) {
+          dump("req2[" + property + "]: " + req2[property]);
+        }
+        name = req2.result;
+      }
+      req2.onerror = function() {
+        dump("[settings] getName error");
+      }
+
       if (myName === '') {
-        myName = visibleName.textContent = defaultAdapter.name;
+        myName = visibleName.textContent = name;
       }
 
       var nameEntered = window.prompt(_('change-phone-name'), myName);
