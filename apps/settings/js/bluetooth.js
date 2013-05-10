@@ -137,7 +137,30 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       if (!bluetooth.enabled || !defaultAdapter)
         return;
 
-      settings.createLock().set({'bluetooth.visible': visible});
+      var req = defaultAdapter.isScoConnected();
+      req.onsuccess = function() {
+        dump("[settings] req.result: " + req.result);
+        if (req.result) {
+          var req1 = defaultAdapter.disconnectSco();
+          req1.onsuccess = function() {
+            dump("[settings] disconnectSco success");
+          };
+          req1.onerror = function() {
+            dump("[settings] disconnectSco error");
+          };
+        } else {
+          var req2 = defaultAdapter.connectSco();
+          req2.onsuccess = function() {
+            dump("[settings] connectSco success");
+          };
+          req2.onerror = function() {
+            dump("[settings] connectSco error");
+          };
+        }
+      };
+
+
+/*      settings.createLock().set({'bluetooth.visible': visible});
 
       defaultAdapter.setDiscoverable(visible);
       // Visibility will time out after 2 mins.
@@ -153,7 +176,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           visibleTimeout = null;
         }
       }
-      visibleCheckBox.checked = visible;
+      visibleCheckBox.checked = visible;*/
     }
 
     // API
@@ -352,6 +375,12 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       navigator.mozSetMessageHandler('bluetooth-hfp-status-changed',
         function bt_getConnectedMessage(message) {
           showDeviceConnected(message.address, message.connected);
+        }
+      );
+
+      navigator.mozSetMessageHandler('bluetooth-sco-status-changed',
+        function bt_getConnectedMessage(message) {
+          dump("bluetooth-sco-status-changed, connected: " + message.connected);
         }
       );
 
