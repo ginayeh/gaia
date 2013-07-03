@@ -1698,14 +1698,16 @@ var AVRCP = {
   PLAY_RELEASE: 'media-play-button-release',
   PAUSE_PRESS: 'media-pause-button-press',
   PAUSE_RELEASE: 'media-pause-button-release',
+  PLAY_PAUSE_PRESS: 'media-play-pause-button-press',
+  PLAY_PAUSE_RELEASE: 'media-play-pause-button-release',
   STOP_PRESS: 'media-stop-button-press',
   STOP_RELEASE: 'media-stop-button-release',
-  FORWARD_PRESS: 'media-forward-button-press',
-  FORWARD_RELEASE: 'media-forward-button-release',
-  BACKWARD_PRESS: 'media-backward-button-press',
-  BACKWARD_RELEASE: 'media-backward-button-release',
-  FAST_FORWARD_PRESS: 'media-fastforward-button-press',
-  FAST_FORWARD_RELEASE: 'media-fastforward-button-release',
+  NEXT_PRESS: 'media-next-track-button-press',
+  NEXT_RELEASE: 'media-next-track-button-release',
+  PREVIOUS_PRESS: 'media-previous-track-button-press',
+  PREVIOUS_RELEASE: 'media-previous-track-button-release',
+  FAST_FORWARD_PRESS: 'media-fast-forward-button-press',
+  FAST_FORWARD_RELEASE: 'media-fast-forward-button-release',
   REWIND_PRESS: 'media-rewind-button-press',
   REWIND_RELEASE: 'media-rewind-button-release'
 };
@@ -1750,10 +1752,10 @@ function MediaCommandHandler(message) {
             currentMode : fromMode;
           changeMode(stopToMode);
           break;
-        case AVRCP.FORWARD_PRESS:
+        case AVRCP.NEXT_PRESS:
           PlayerView.next();
           break;
-        case AVRCP.BACKWARD_PRESS:
+        case AVRCP.PREVIOUS_PRESS:
           PlayerView.previous();
           break;
         case AVRCP.FAST_FORWARD_PRESS:
