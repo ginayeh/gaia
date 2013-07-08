@@ -1762,8 +1762,14 @@ function MediaCommandHandler(message) {
             PlayerView.play();
           break;
         case AVRCP.PAUSE_PRESS:
-         if (PlayerView.isPlaying)
+          if (PlayerView.isPlaying)
             PlayerView.pause();
+          break;
+        case AVRCP.PLAY_PAUSE_PRESS:
+          if (PlayerView.isPlaying)
+            PlayerView.pause();
+          else
+            PlayerView.play();
           break;
         case AVRCP.STOP_PRESS:
           // stop and back to the previous mode
