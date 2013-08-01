@@ -1756,7 +1756,7 @@ function MediaCommandHandler(message) {
           var currentMode = ModeManager.currentMode;
           var stopToMode = (currentMode != MODE_PLAYER) ?
             currentMode : fromMode;
-          changeMode(stopToMode);
+          ModeManager.start(stopToMode);
           break;
         case AVRCP.NEXT_PRESS:
           PlayerView.next();
@@ -1765,10 +1765,12 @@ function MediaCommandHandler(message) {
           PlayerView.previous();
           break;
         case AVRCP.FAST_FORWARD_PRESS:
-          PlayerView.fastSeeking('forward');
+          if (!PlayerView.isSeeking)
+            PlayerView.fastSeeking('forward');
           break;
         case AVRCP.REWIND_PRESS:
-          PlayerView.fastSeeking('backward');
+          if (!PlayerView.isSeeking)
+            PlayerView.fastSeeking('backward');
           break;
         case AVRCP.FAST_FORWARD_RELEASE:
         case AVRCP.REWIND_RELEASE:
@@ -1782,7 +1784,7 @@ function MediaCommandHandler(message) {
         PlayerView.setShuffle(true);
         PlayerView.play(PlayerView.shuffledList[0]);
 
-        changeMode(MODE_PLAYER);
+        ModeManager.start(MODE_PLAYER);
       });
     }
   };
