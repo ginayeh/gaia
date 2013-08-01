@@ -564,7 +564,8 @@ var PlayerView = {
 
   cancelFastSeeking: function pv_cancelFastSeeking() {
     this.isSeeking = false;
-    window.clearInterval(this.intervalID);
+    if (this.intervalID)
+      window.clearInterval(this.intervalID);
   },
 
   updateSeekBar: function pv_updateSeekBar() {
@@ -622,8 +623,7 @@ var PlayerView = {
           // If we reach here, the contextmenu event was already fired
           // and user's finger leaves the panel so the click event fires
           // this means if fastSeeking was triggered, we should cancel it
-          if (this.intervalID)
-            this.cancelFastSeeking();
+          this.cancelFastSeeking();
           return;
         }
 
