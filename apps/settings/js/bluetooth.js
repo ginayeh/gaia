@@ -239,20 +239,20 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       showActions: function showActions() {
         var self = this;
-        if (connectedAddress && this.device.address === connectedAddress) {
-          this.connectOpt.style.display = 'none';
+//        if (connectedAddress && this.device.address === connectedAddress) {
+//          this.connectOpt.style.display = 'none';
           this.disconnectOpt.style.display = 'block';
           this.disconnectOpt.onclick = function() {
             setDeviceDisconnect(self.device);
           };
-        } else {
+//        } else {
           this.connectOpt.style.display = 'block';
-          this.disconnectOpt.style.display = 'none';
+//          this.disconnectOpt.style.display = 'none';
           this.connectOpt.onclick = function() {
             setDeviceConnect(self.device);
             stopDiscovery();
           };
-        }
+//        }
         this.unpairOpt.onclick = function() {
           setDeviceUnpair(self.device);
         };
@@ -360,17 +360,25 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         }
       );
 
-      defaultAdapter.onhfpstatuschanged = function bt_getConnectedMessage(evt) {
+//      defaultAdapter.onhfpstatuschanged = function bt_getConnectedMessage(evt) {
+      defaultAdapter.ona2dpstatuschanged = function bt_getConnectedMessage(evt) {
+        dump("[gaia] receive a2dpstatuscanged, status: " + evt.status);
         showDeviceConnected(evt.address, evt.status);
+      };
+
+      defaultAdapter.onhfpstatuschanged = function bt_getConnectedMessage(evt) {
+        dump("[gaia] receive hfpstatuscanged, status: " + evt.status);
       };
 
       // get paired device and restore connection
       // if we have one device connected before.
-      getPairedDevice(restoreConnection);
-      startDiscovery();
+//      getPairedDevice(restoreConnection);
+      getPairedDevice(null);
+//      startDiscovery();
+      searchAgainBtn.disabled = false;
     }
 
-    function restoreConnection() {
+/*    function restoreConnection() {
       window.asyncStorage.getItem('device.connected', function(value) {
         if (!value || !pairList.index[value])
           return;
@@ -383,7 +391,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           }
         });
       });
-    }
+    }*/
 
     function getPairedDevice(callback) {
       if (!bluetooth.enabled || !defaultAdapter)
@@ -592,23 +600,28 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     }
 
     function setDeviceDisconnect(device) {
-      if (!bluetooth.enabled || !defaultAdapter ||
+/*      if (!bluetooth.enabled || !defaultAdapter ||
           device.address !== connectedAddress)
-        return;
+        return;*/
 
       // '0x111E' is a service id of HFP.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
       // XXX: Bug 870689. The device maybe connected using HFP or HSP. Always
       // pass 0x111E here until gecko separates these two profiles.
-      var req = defaultAdapter.disconnect(0x111E);
+//      var req = defaultAdapter.disconnect(device, 0x111E);
+      var req = defaultAdapter.disconnect(device);
+      req.onsuccess = function() {
+        dump("[Gaia] disconnect success");
+      };
       req.onerror = function() {
+        dump("[Gaia] disconnect error");
         showDeviceConnected(device.address, true);
       };
     }
 
     function setDeviceConnect(device) {
       // we only support audio-card device to connect now
-      if (!bluetooth.enabled || !defaultAdapter ||
+/*      if (!bluetooth.enabled || !defaultAdapter ||
           device.icon !== 'audio-card' ||
           device.address === connectedAddress) {
         connectingAddress = null;
@@ -618,9 +631,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       // disconnect current connected device first
       if (connectedAddress && pairList.index[connectedAddress]) {
         setDeviceDisconnect(pairList.index[connectedAddress][0]);
-      }
+      }*/
 
-      var connectToDevice =
+/*      var connectToDevice =
         function bt_connectToDevice(address, serviceID, onsuccess, onerror) {
           var req = defaultAdapter.connect(address, serviceID);
           req.onerror = onerror;
@@ -635,12 +648,12 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           connectingAddress = null;
           window.alert(_('error-connect-msg'));
         }
-      };
+      };*/
 
       // '0x111E' is a service id of HFP.
       // '0x1108' is a service id of HSP.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-      var req = connectToDevice(device.address, 0x111E, null, function() {
+/*      var req = connectToDevice(device.address, 0x111E, null, function() {
         if (req.error.name === 'DeviceChannelRetrievalError') {
           // Try to connect using HSP again.
           connectToDevice(device.address, 0x1108, null, function() {
@@ -649,7 +662,15 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         } else {
           connectError();
         }
-      });
+      });*/
+
+      var req = defaultAdapter.connect(device);
+      req.onsuccess = function() {
+        dump("[Gaia] onsuccess");
+      };
+      req.onerror = function() {
+        dump("[Gaia] onerror");
+      };
 
       connectingAddress = device.address;
       if (!pairList.index[connectingAddress]) {
@@ -724,13 +745,13 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       var req = defaultAdapter.startDiscovery();
       req.onsuccess = function bt_discoveryStart() {
-        searchAgainBtn.disabled = true;
+//        searchAgainBtn.disabled = true;
         if (!discoverTimeout)
           discoverTimeout = setTimeout(stopDiscovery, discoverTimeoutTime);
       };
       req.onerror = function bt_discoveryFailed() {
         searchingItem.hidden = true;
-        searchAgainBtn.disabled = false;
+//        searchAgainBtn.disabled = false;
       };
     }
 
@@ -746,12 +767,12 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         return;
       var req = defaultAdapter.stopDiscovery();
       req.onsuccess = function bt_discoveryStopped() {
-        searchAgainBtn.disabled = false;
+//        searchAgainBtn.disabled = false;
         searchingItem.hidden = true;
       };
       req.onerror = function bt_discoveryStopFailed() {
         console.error('Can not stop discover nearby device');
-        searchAgainBtn.disabled = true;
+//        searchAgainBtn.disabled = true;
         searchingItem.hidden = false;
       };
       clearTimeout(discoverTimeout);
