@@ -1775,14 +1775,15 @@ function MediaCommandHandler(message) {
           // stop and back to the previous mode
           PlayerView.stop();
           PlayerView.clean();
-          playerTitle = null;
+          ModeManager.playerTitle = null;
 
           // To leave player mode and set the correct title to the TitleBar
           // we have to decide which mode we should back to when stops
-          var currentMode = ModeManager.currentMode;
-          var stopToMode = (currentMode != MODE_PLAYER) ?
-            currentMode : fromMode;
-          ModeManager.start(stopToMode);
+          if (ModeManager.currentMode === MODE_PLAYER) {
+            ModeManager.pop();
+          } else {
+            ModeManager.updateTitle();
+          }
           break;
         case AVRCP.NEXT_PRESS:
           PlayerView.next();
