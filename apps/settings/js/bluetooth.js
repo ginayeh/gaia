@@ -239,19 +239,19 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       showActions: function showActions() {
         var self = this;
-        if (connectedAddress && this.device.address === connectedAddress) {
-          this.connectOpt.style.display = 'none';
+//        if (connectedAddress && this.device.address === connectedAddress) {
+//          this.connectOpt.style.display = 'none';
           this.disconnectOpt.style.display = 'block';
           this.disconnectOpt.onclick = function() {
             setDeviceDisconnect(self.device);
           };
-        } else {
+//        } else {
           this.connectOpt.style.display = 'block';
-          this.disconnectOpt.style.display = 'none';
+//          this.disconnectOpt.style.display = 'none';
           this.connectOpt.onclick = function() {
             setDeviceConnect(self.device);
             stopDiscovery();
-          };
+//          };
         }
         this.unpairOpt.onclick = function() {
           setDeviceUnpair(self.device);
@@ -364,9 +364,14 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         }
       );
 
-      defaultAdapter.onhfpstatuschanged = function bt_getConnectedMessage(evt) {
+      defaultAdapter.ona2dpstatuschanged = function bt_getConnectedMessage(evt) {
+        dump("receive ona2dpstatuschanged: " + evt.status);
         showDeviceConnected(evt.address, evt.status);
       };
+      
+      defaultAdapter.onhfpstatuschanged = function(evt) {
+        dump("receive onhfpstatuschanged: " + evt.status)
+      }
 
       // get paired device and restore connection
       // if we have one device connected before.
@@ -596,15 +601,15 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     }
 
     function setDeviceDisconnect(device) {
-      if (!bluetooth.enabled || !defaultAdapter ||
+/*      if (!bluetooth.enabled || !defaultAdapter ||
           device.address !== connectedAddress)
-        return;
+        return;*/
 
       // '0x111E' is a service id of HFP.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
       // XXX: Bug 870689. The device maybe connected using HFP or HSP. Always
       // pass 0x111E here until gecko separates these two profiles.
-      var req = defaultAdapter.disconnect(0x111E);
+      var req = defaultAdapter.disconnect(device, 0x110D);
       req.onerror = function() {
         showDeviceConnected(device.address, true);
       };
@@ -612,17 +617,25 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
     function setDeviceConnect(device) {
       // we only support audio-card device to connect now
-      if (!bluetooth.enabled || !defaultAdapter ||
+/*      if (!bluetooth.enabled || !defaultAdapter ||
           device.icon !== 'audio-card' ||
           device.address === connectedAddress) {
         connectingAddress = null;
         return;
-      }
+      }*/
 
       // disconnect current connected device first
-      if (connectedAddress && pairList.index[connectedAddress]) {
+/*      if (connectedAddress && pairList.index[connectedAddress]) {
         setDeviceDisconnect(pairList.index[connectedAddress][0]);
-      }
+      }*/
+
+      var req = defaultAdapter.connect(device, 0x110D);
+      req.onsuccess = function() {
+        dump("[Gaia] connect success");
+      };
+      req.onerror = function() {
+        dump("[Gaia] connect error");
+      };
 
       var connectToDevice =
         function bt_connectToDevice(address, serviceID, onsuccess, onerror) {
@@ -644,16 +657,17 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       // '0x111E' is a service id of HFP.
       // '0x1108' is a service id of HSP.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-      var req = connectToDevice(device.address, 0x111E, null, function() {
+/*      var req = connectToDevice(device.address, 0x110D, null, function() {
+        dump("[Gaia] connect error");
         if (req.error.name === 'DeviceChannelRetrievalError') {
           // Try to connect using HSP again.
           connectToDevice(device.address, 0x1108, null, function() {
             connectError();
           });
         } else {
-          connectError();
-        }
-      });
+//          connectError();
+//        }
+      });*/
 
       connectingAddress = device.address;
       if (!pairList.index[connectingAddress]) {
