@@ -32,6 +32,22 @@ window.addEventListener('visibilitychange', function() {
   }
 });
 
+var bluetooth = window.navigator.mozBluetooth;
+var defaultAdapter = null;
+if (bluetooth) {
+  dump("[music] get mozBluetooth");
+  var req = defaultAdapter = bluetooth.getDefaultAdapter();
+  req.onsuccess = function() {
+    dump("[music] get default adapter");
+    defaultAdapter = req.result;
+  };
+  req.onerror = function() {
+    dump("[music] no default adapter");
+  };
+} else {
+  dump("[music] no mozBluetooth");
+}
+
 // View of Player
 var PlayerView = {
   get view() {
