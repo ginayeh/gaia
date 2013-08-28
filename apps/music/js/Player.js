@@ -40,6 +40,12 @@ if (bluetooth) {
   req.onsuccess = function() {
     dump("[music] get default adapter");
     defaultAdapter = req.result;
+    defaultAdapter.ona2dpstatuschanged = function(evt) {
+      dump("[music] receive ona2dpstatuschanged, status: " + evt.status);
+      if (evt.status) {
+        PlayerView.updateMetadataStatus();
+      }
+    };
   };
   req.onerror = function() {
     dump("[music] no default adapter");
