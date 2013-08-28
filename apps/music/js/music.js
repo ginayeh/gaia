@@ -38,6 +38,8 @@ var pendingPick;
 var SETTINGS_OPTION_KEY = 'settings_option_key';
 var playerSettings;
 
+var mrc = new MediaRemoteControls();
+
 // We get a localized event when the application is launched and when
 // the user switches languages.
 window.addEventListener('localized', function onlocalized() {
@@ -191,9 +193,9 @@ function init() {
     // Concurrently, start scanning for new music
     musicdb.scan();
 
-    // We have to wait the MediaDB ready then we may able to play songs
-    // after we received media commands from AVRCP or Headphones wire control?
-    navigator.mozSetMessageHandler('media-button', MediaCommandHandler);
+    // We have to wait for the MediaDB ready then we may able to play songs
+    // after we received media commands from the remote controls.
+    mrc.start();
   };
 
   var filesDeletedWhileScanning = 0;
@@ -1714,98 +1716,68 @@ var TabBar = {
   }
 };
 
-// Commands for AVRCP
-// Note for release commands
-// We only use FAST_FORWARD_RELEASE and REWIND_RELEASE
-// not sure if we will use the other release commands in the future
-// just defined here and make sure Music app knows all these commands
-var AVRCP = {
-  PLAY_PRESS: 'media-play-button-press',
-  PLAY_RELEASE: 'media-play-button-release',
-  PAUSE_PRESS: 'media-pause-button-press',
-  PAUSE_RELEASE: 'media-pause-button-release',
-  PLAY_PAUSE_PRESS: 'media-play-pause-button-press',
-  PLAY_PAUSE_RELEASE: 'media-play-pause-button-release',
-  STOP_PRESS: 'media-stop-button-press',
-  STOP_RELEASE: 'media-stop-button-release',
-  NEXT_PRESS: 'media-next-track-button-press',
-  NEXT_RELEASE: 'media-next-track-button-release',
-  PREVIOUS_PRESS: 'media-previous-track-button-press',
-  PREVIOUS_RELEASE: 'media-previous-track-button-release',
-  FAST_FORWARD_PRESS: 'media-fast-forward-button-press',
-  FAST_FORWARD_RELEASE: 'media-fast-forward-button-release',
-  REWIND_PRESS: 'media-rewind-button-press',
-  REWIND_RELEASE: 'media-rewind-button-release'
-};
+window.addEventListener('remote', remoteEventHandler);
 
-function MediaCommandHandler(message) {
+function remoteEventHandler(event) {
+  if (!event.detail)
+    return;
+
   LazyLoader.load('js/metadata_scripts.js', function() {
     if (typeof PlayerView === 'undefined') {
       LazyLoader.load('js/Player.js', function() {
         PlayerView.init();
 
-        processAVRCP();
+        processCommand(event);
       });
-    }else {
-      processAVRCP();
+    } else {
+      processCommand(event);
     }
   });
 
-  function processAVRCP() {
-    // We only handle AVRCP presses when PlayerView has a playing playlist
-    // except AVRCP.PLAY_PRESS because it might be a remote command
-    // that system ask Music app to launch and play in shffule order
+  function processCommand(event) {
+    var command = event.detail.command;
+    // We only handle the remote commands when PlayerView has a playing queue,
+    // except REMOTE_CONTORLS.PLAY because it might be a remote command that
+    // system message ask Music app to launch and play in shffule order.
     if (PlayerView.dataSource.length != 0) {
-      switch (message) {
-        case AVRCP.PLAY_PRESS:
-          if (!PlayerView.isPlaying)
-            PlayerView.play();
-          break;
-        case AVRCP.PAUSE_PRESS:
-          if (PlayerView.isPlaying)
-            PlayerView.pause();
-          break;
-        case AVRCP.PLAY_PAUSE_PRESS:
+      switch (command) {
+        case REMOTE_CONTORLS.PLAY:
+        case REMOTE_CONTORLS.PAUSE:
           if (PlayerView.isPlaying)
             PlayerView.pause();
           else
             PlayerView.play();
           break;
-        case AVRCP.STOP_PRESS:
+        case REMOTE_CONTORLS.STOP:
           // stop and back to the previous mode
           PlayerView.stop();
           PlayerView.clean();
           ModeManager.playerTitle = null;
-
-          // To leave player mode and set the correct title to the TitleBar
-          // we have to decide which mode we should back to when stops
-          if (ModeManager.currentMode === MODE_PLAYER) {
+          // Leave player mode if music is in player mode,
+          // or update the TitleBar when in the other modes.
+          if (ModeManager.currentMode === MODE_PLAYER)
             ModeManager.pop();
-          } else {
+          else
             ModeManager.updateTitle();
-          }
           break;
-        case AVRCP.NEXT_PRESS:
+        case REMOTE_CONTORLS.NEXT:
           PlayerView.next();
           break;
-        case AVRCP.PREVIOUS_PRESS:
+        case REMOTE_CONTORLS.PREVIOUS:
           PlayerView.previous();
           break;
-        case AVRCP.FAST_FORWARD_PRESS:
-          if (!PlayerView.isSeeking)
-            PlayerView.fastSeeking('forward');
+        case REMOTE_CONTORLS.SEEK_PRESS:
+          if (!PlayerView.isSeeking) {
+            var direction = event.detail.direction ? 'forward' : 'backward';
+            PlayerView.fastSeeking(direction);
+          }
           break;
-        case AVRCP.REWIND_PRESS:
-          if (!PlayerView.isSeeking)
-            PlayerView.fastSeeking('backward');
-          break;
-        case AVRCP.FAST_FORWARD_RELEASE:
-        case AVRCP.REWIND_RELEASE:
+        case REMOTE_CONTORLS.SEEK_RELEASE:
           PlayerView.cancelFastSeeking();
           break;
       }
-    } else if (message === AVRCP.PLAY_PRESS) {
-      musicdb.getAll(function AVRCP_getAll(dataArray) {
+    } else if (command === REMOTE_CONTORLS.PLAY) {
+      musicdb.getAll(function remote_getAll(dataArray) {
         PlayerView.setSourceType(TYPE_MIX);
         PlayerView.dataSource = dataArray;
         PlayerView.setShuffle(true);
@@ -1814,5 +1786,5 @@ function MediaCommandHandler(message) {
         ModeManager.start(MODE_PLAYER);
       });
     }
-  };
+  }
 }
