@@ -369,10 +369,10 @@ var PlayerView = {
   updateMetadataStatus: function pv_updateMetadataStatus() {
     // Update the playing information to AVRCP devices
     var metadata = this.dataSource[this.currentIndex].metadata;
-    metadata.currentTime = this.audio.currentTime;
-    metadata.duration = this.audio.duration;
-    metadata.trackNumber = this.currentIndex + 1;
-    metadata.totalTracks = this.dataSource.length;
+//    metadata.currentTime = this.audio.currentTime;
+    metadata.duration = this.audio.duration * 1000;
+    metadata.mediaNumber = this.currentIndex + 1;
+    metadata.totalMediaCount = this.dataSource.length;
 
     // Just add the functions or api here
     // and Music player will update for you at the right time
@@ -382,23 +382,46 @@ var PlayerView = {
     // - metadata.artist
     // - metadata.title
     // - metadata.duration
-    // - metadata.trackNumber
-    // - metadata.totalTracks
+    // - metadata.mediaNumber
+    // - metadata.totalMediaCount
+		dump("[music] title: " + metadata.title);
+		dump("[music] artist: " + metadata.artist);
+		dump("[music] album: " + metadata.album);
+		dump("[music] duration: " + metadata.duration);
+		dump("[music] mediaNumber: " + metadata.mediaNumber);
+		dump("[music] totalMediaCount: " + metadata.totalMediaCount);
+		var req = defaultAdapter.sendMediaMetaData(metadata);
+		req.onsuccess = function() {
+		  dump("[music] sendMediaMetaData success");
+		};
+		req.onerror = function() {
+		  dump("[music] sendMediaMetaData error");
+		};
   },
 
   updatePlayingStatus: function pv_updatePlayingStatus() {
-    var info = {status: null,
-                duration: this.audio.duration,
-                currentTime: this.audio.currentTime};
+    var info = {playStatus: null,
+                duration: this.audio.duration * 1000,
+                position: this.audio.currentTime * 1000};
 
+//    'STOPPED'/'PLAYING'/'PAUSED'/'FWD_SEEK'/'REV_SEEK'/'ERROR'
     if (this.isStpped)
-      info.status = 'stop';
+      info.playStatus = 'STOPPED';
     else if (this.isPlaying)
-      info.status = 'play';
+      info.playStatus = 'PLAYING';
     else if (!this.isPlaying)
-      info.status = 'pasue';
+      info.playStatus = 'PAUSED';
 
-    return info;
+		dump("[music] playStatus: " + info.playStatus);
+		dump("[music] duration: " + info.duration);
+		dump("[music] position: " + info.position);
+		var req = defaultAdapter.sendMediaPlayStatus(info);
+		req.onsuccess = function() {
+		  dump("[music] sendMediaPlayStatus success");
+		};
+		req.onerror = function() {
+		  dump("[music] sendMediaPlayStatus error");
+		}; 
   },
 
   play: function pv_play(targetIndex, backgroundIndex) {
