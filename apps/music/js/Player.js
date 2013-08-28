@@ -336,6 +336,7 @@ var PlayerView = {
   },
 
   setAudioSrc: function pv_setAudioSrc(file) {
+    dump("[music] setAudioSrc");
     var url = URL.createObjectURL(file);
     this.playingBlob = file;
     // Reset src before we set a new source to the audio element
@@ -359,6 +360,8 @@ var PlayerView = {
     // due to b2g cannot get some mp3's duration
     // and the seekBar can still show 00:00 to -00:00
     this.setSeekBar(0, 0, 0);
+    this.updateMetadataStatus();
+    this.updatePlayingStatus();
 
     if (this.endedTimer) {
       clearTimeout(this.endedTimer);
@@ -384,19 +387,19 @@ var PlayerView = {
     // - metadata.duration
     // - metadata.mediaNumber
     // - metadata.totalMediaCount
-		dump("[music] title: " + metadata.title);
-		dump("[music] artist: " + metadata.artist);
-		dump("[music] album: " + metadata.album);
-		dump("[music] duration: " + metadata.duration);
-		dump("[music] mediaNumber: " + metadata.mediaNumber);
-		dump("[music] totalMediaCount: " + metadata.totalMediaCount);
-		var req = defaultAdapter.sendMediaMetaData(metadata);
-		req.onsuccess = function() {
-		  dump("[music] sendMediaMetaData success");
-		};
-		req.onerror = function() {
-		  dump("[music] sendMediaMetaData error");
-		};
+    dump("[music] title: " + metadata.title);
+    dump("[music] artist: " + metadata.artist);
+    dump("[music] album: " + metadata.album);
+    dump("[music] duration: " + metadata.duration);
+    dump("[music] mediaNumber: " + metadata.mediaNumber);
+    dump("[music] totalMediaCount: " + metadata.totalMediaCount);
+    var req = defaultAdapter.sendMediaMetaData(metadata);
+    req.onsuccess = function() {
+      dump("[music] sendMediaMetaData success");
+    };
+    req.onerror = function() {
+      dump("[music] sendMediaMetaData error");
+    };
   },
 
   updatePlayingStatus: function pv_updatePlayingStatus() {
@@ -404,27 +407,34 @@ var PlayerView = {
                 duration: this.audio.duration * 1000,
                 position: this.audio.currentTime * 1000};
 
-//    'STOPPED'/'PLAYING'/'PAUSED'/'FWD_SEEK'/'REV_SEEK'/'ERROR'
-    if (this.isStpped)
+    dump("[music] isSeeking: " + this.isSeeking);
+    dump("[music] seekTime: " + this.seekTime);
+    dump("[music] currentTime: " + this.audio.currentTime);
+    if (this.isSeeking && this.seekTime > this.audio.currentTime)
+      info.playStatus = 'FWD_SEEK';
+    else if (this.isSeeking && this.seekTime < this.audio.currentTime)
+      info.playStatus = 'REV_SEEK';
+    else if (this.isStpped)
       info.playStatus = 'STOPPED';
     else if (this.isPlaying)
       info.playStatus = 'PLAYING';
     else if (!this.isPlaying)
       info.playStatus = 'PAUSED';
 
-		dump("[music] playStatus: " + info.playStatus);
-		dump("[music] duration: " + info.duration);
-		dump("[music] position: " + info.position);
-		var req = defaultAdapter.sendMediaPlayStatus(info);
-		req.onsuccess = function() {
-		  dump("[music] sendMediaPlayStatus success");
-		};
-		req.onerror = function() {
-		  dump("[music] sendMediaPlayStatus error");
-		}; 
+    dump("[music] playStatus: " + info.playStatus);
+    dump("[music] duration: " + info.duration);
+    dump("[music] position: " + info.position);
+    var req = defaultAdapter.sendMediaPlayStatus(info);
+    req.onsuccess = function() {
+      dump("[music] sendMediaPlayStatus success");
+    };
+    req.onerror = function() {
+      dump("[music] sendMediaPlayStatus error");
+    };
   },
 
   play: function pv_play(targetIndex, backgroundIndex) {
+    dump("[music] play");
     this.isPlaying = true;
     this.isStopped = false;
 
@@ -453,6 +463,7 @@ var PlayerView = {
           this.pause();
       }.bind(this));
 
+//      this.updatePlayingStatus();
       this.updateMetadataStatus();
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // When we have to play a blob, we need to parse the metadata
@@ -471,29 +482,31 @@ var PlayerView = {
     } else {
       // If we reach here, the player is paused so resume it
       this.audio.play();
-
       this.updatePlayingStatus();
     }
   },
 
   pause: function pv_pause() {
+    dump("[music] pause");
     this.isPlaying = false;
     this.audio.pause();
 
-    this.updatePlayingStatus();
+//    this.updatePlayingStatus();
   },
 
   stop: function pv_stop() {
+    dump("[music] stop");
     this.isStopped = true;
 
     this.pause();
     this.audio.removeAttribute('src');
     this.audio.load();
 
-    this.updatePlayingStatus();
+//    this.updatePlayingStatus();
   },
 
   next: function pv_next(isAutomatic) {
+    dump("[music] next");
     if (this.sourceType === TYPE_BLOB || this.sourceType === TYPE_SINGLE) {
       // When the player ends, reassign src it if the dataSource is a blob
       this.setAudioSrc(this.playingBlob);
@@ -763,6 +776,8 @@ var PlayerView = {
       case 'touchend':
         this.seekIndicator.classList.remove('highlight');
         if (this.audio.duration > 0 && this.isSeeking) {
+          dump("[music] touchend");
+          this.updatePlayingStatus();
           this.seekAudio(this.seekTime);
           this.seekTime = 0;
         }
