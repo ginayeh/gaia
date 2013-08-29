@@ -1740,10 +1740,10 @@ var AVRCP = {
   REWIND_RELEASE: 'media-rewind-button-release'
 };
 
-function UpdatePlayStatus(message) {
+/*function UpdatePlayStatus(message) {
   dump("[music] receive 'bluetooth-avrcp-playstatus'");
   PlayerView.updatePlayingStatus();
-};
+};*/
 
 function MediaCommandHandler(message) {
   LazyLoader.load('js/metadata_scripts.js', function() {

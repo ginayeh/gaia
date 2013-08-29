@@ -46,6 +46,10 @@ if (bluetooth) {
         PlayerView.updateMetadataStatus();
       }
     };
+		defaultAdapter.onmediaplaystatusrequest = function(evt) {
+		  dump("[music] receive onmediaplaystatusrequest");
+			PlayerView.updatePlayingStatus();
+		};
   };
   req.onerror = function() {
     dump("[music] no default adapter");

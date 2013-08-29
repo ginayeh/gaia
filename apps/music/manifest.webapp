@@ -59,7 +59,6 @@
   },
   "orientation": "portrait-primary",
   "messages": [
-     { "media-button": "/index.html#mix" },
-     "bluetooth-avrcp-playstatus"
+     { "media-button": "/index.html#mix" }
   ]
 }
