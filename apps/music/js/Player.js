@@ -354,36 +354,31 @@ var PlayerView = {
   updateMetadataStatus: function pv_updateMetadataStatus() {
     // Update the playing information to AVRCP devices
     var metadata = this.dataSource[this.currentIndex].metadata;
-    metadata.currentTime = this.audio.currentTime;
-    metadata.duration = this.audio.duration;
-    metadata.trackNumber = this.currentIndex + 1;
-    metadata.totalTracks = this.dataSource.length;
+    metadata.duration = this.audio.duration * 1000; // ms?
+    metadata.mediaNumber = this.currentIndex + 1;
+    metadata.totalMediaCount = this.dataSource.length;
 
-    // Just add the functions or api here
-    // and Music player will update for you at the right time
-    // note that metadata is the object that contains
-    // all the useful information such as:
-    // - metadata.album
-    // - metadata.artist
-    // - metadata.title
-    // - metadata.duration
-    // - metadata.trackNumber
-    // - metadata.totalTracks
+    // Notify the remote device that metadata is changed.
+    mrc.notifyMetadataChanged(metadata);
   },
 
   updatePlayingStatus: function pv_updatePlayingStatus() {
-    var info = {status: null,
-                duration: this.audio.duration,
-                currentTime: this.audio.currentTime};
+    var info = {
+      playStatus: null,
+      duration: this.audio.duration * 1000,
+      position: this.audio.currentTime * 1000
+    };
 
+    // 'STOPPED'/'PLAYING'/'PAUSED'/'FWD_SEEK'/'REV_SEEK'/'ERROR'
     if (this.isStpped)
-      info.status = 'stop';
+      info.playStatus = 'STOPPED';
     else if (this.isPlaying)
-      info.status = 'play';
+      info.playStatus = 'PLAYING';
     else if (!this.isPlaying)
-      info.status = 'pasue';
+      info.playStatus = 'PAUSED';
 
-    return info;
+    // Notify the remote device that status is changed.
+    mrc.notifyStatusChanged(info);
   },
 
   play: function pv_play(targetIndex, backgroundIndex) {
@@ -462,9 +457,6 @@ var PlayerView = {
       this.pause();
       return;
     }
-
-    // Pause before starts a new song
-    this.pause();
 
     // We only repeat a song automatically. (when the song is ended)
     // If users click skip forward, player will go on to next one
