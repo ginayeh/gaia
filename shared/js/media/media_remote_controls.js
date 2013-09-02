@@ -34,13 +34,13 @@ var IAC = {
 
 // Commands for remote CustomEvent that we actually dispatched.
 var REMOTE_CONTORLS = {
-  PLAY: 'remote-media-play',
-  PAUSE: 'remote-media-pause',
-  STOP: 'remote-media-stop',
-  NEXT: 'remote-media-next',
-  PREVIOUS: 'remote-media-previous',
-  SEEK_PRESS: 'remote-media-seek-press',
-  SEEK_RELEASE: 'remote-media-seek-release'
+  PLAY: 'media-play',
+  PAUSE: 'media-pause',
+  STOP: 'media-stop',
+  NEXT: 'media-next',
+  PREVIOUS: 'media-previous',
+  SEEK_PRESS: 'media-seek-press',
+  SEEK_RELEASE: 'media-seek-release'
 };
 
 function MediaRemoteControls() {
@@ -49,27 +49,43 @@ function MediaRemoteControls() {
   this.updateHandler = null;
 }
 
+MediaRemoteControls.prototype.setUpdateStatusHandler = function(handler) {
+  this.updateHandler = handler;
+};
+
 MediaRemoteControls.prototype.start = function() {
   // AVRCP commands use system message.
   navigator.mozSetMessageHandler('media-button', this._commandHandler);
 
   // The bluetooth adapter will be needed to send metadata and play status
-  // when these information are changed.
+  // when those information are changed.
   if (this.bluetooth) {
+    this.bluetooth.onadapteradded = initialDefaultAdapter.bind(this);
+    this.bluetooth.ondisabled = resetDefaultAdapter.bind(this);
+  } else {
+    console.log('No mozBluetooth');
+  }
+
+  function initialDefaultAdapter() {
     var request = this.defaultAdapter = this.bluetooth.getDefaultAdapter();
     var self = this;
     request.onsuccess = function() {
       self.defaultAdapter = request.result;
       self.defaultAdapter.onrequestmediaplaystatus = self.updateHandler;
-
       console.log('Got default adapter');
     };
     request.onerror = function() {
       console.log('Cannot get default adapter');
     };
-  } else {
-    console.log('No mozBluetooth');
   }
+
+  function resetDefaultAdapter() {
+    this.defaultAdapter = null;
+    // Do we need to do anything else?
+  }
+
+  // Get the default adapter at start because bluetooth might already enabled.
+  initialDefaultAdapter.call(this);
 
   // IAC commands would likely also use the system messages, please see:
   // https://wiki.mozilla.org/WebAPI/Inter_App_Communication_Alt_proposal
@@ -147,8 +163,4 @@ MediaRemoteControls.prototype.notifyStatusChanged = function(status) {
       console.log('sendMediaPlayStatus error');
     };
   }
-};
-
-MediaRemoteControls.prototype.setUpdateStatusHandler = function(handler) {
-  this.updateHandler = handler;
 };
