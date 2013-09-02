@@ -357,6 +357,9 @@ var PlayerView = {
     metadata.duration = this.audio.duration * 1000; // ms?
     metadata.mediaNumber = this.currentIndex + 1;
     metadata.totalMediaCount = this.dataSource.length;
+    // Album and artist might be empty so localize them if they are not exist.
+    metadata.artist = metadata.artist || unknownArtist;
+    metadata.album = metadata.album || unknownAlbum;
 
     // Notify the remote device that metadata is changed.
     mrc.notifyMetadataChanged(metadata);

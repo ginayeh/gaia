@@ -1726,6 +1726,9 @@ function remoteEventHandler(event) {
     if (typeof PlayerView === 'undefined') {
       LazyLoader.load('js/Player.js', function() {
         PlayerView.init();
+        mrc.setUpdateStatusHandler(
+          PlayerView.updatePlayingStatus.bind(PlayerView)
+        );
 
         processCommand(event);
       });

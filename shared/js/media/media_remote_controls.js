@@ -46,6 +46,7 @@ var REMOTE_CONTORLS = {
 function MediaRemoteControls() {
   this.bluetooth = navigator.mozBluetooth;
   this.defaultAdapter = null;
+  this.updateHandler = null;
 }
 
 MediaRemoteControls.prototype.start = function() {
@@ -59,6 +60,8 @@ MediaRemoteControls.prototype.start = function() {
     var self = this;
     request.onsuccess = function() {
       self.defaultAdapter = request.result;
+      self.defaultAdapter.onrequestmediaplaystatus = self.updateHandler;
+
       console.log('Got default adapter');
     };
     request.onerror = function() {
@@ -144,4 +147,8 @@ MediaRemoteControls.prototype.notifyStatusChanged = function(status) {
       console.log('sendMediaPlayStatus error');
     };
   }
+};
+
+MediaRemoteControls.prototype.setUpdateStatusHandler = function(handler) {
+  this.updateHandler = handler;
 };
