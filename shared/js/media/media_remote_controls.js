@@ -62,6 +62,8 @@ MediaRemoteControls.prototype.start = function() {
   if (this.bluetooth) {
     this.bluetooth.onadapteradded = initialDefaultAdapter.bind(this);
     this.bluetooth.ondisabled = resetDefaultAdapter.bind(this);
+    // Get the default adapter at start because bluetooth might already enabled.
+    initialDefaultAdapter.call(this);
   } else {
     console.log('No mozBluetooth');
   }
@@ -83,9 +85,6 @@ MediaRemoteControls.prototype.start = function() {
     this.defaultAdapter = null;
     // Do we need to do anything else?
   }
-
-  // Get the default adapter at start because bluetooth might already enabled.
-  initialDefaultAdapter.call(this);
 
   // IAC commands would likely also use the system messages, please see:
   // https://wiki.mozilla.org/WebAPI/Inter_App_Communication_Alt_proposal
@@ -131,6 +130,8 @@ MediaRemoteControls.prototype._commandHandler = function(message) {
     case IAC.REWIND_RELEASE:
       option.detail = { command: REMOTE_CONTORLS.SEEK_RELEASE };
       break;
+    default:
+      return;
   }
 
   var event = new CustomEvent(type, option);
@@ -149,6 +150,7 @@ MediaRemoteControls.prototype.notifyMetadataChanged = function(metadata) {
       console.log('sendMediaMetaData error');
     };
   }
+  // If IAC exists, we will also notify the metadata to the requester.
 };
 
 MediaRemoteControls.prototype.notifyStatusChanged = function(status) {
@@ -163,4 +165,5 @@ MediaRemoteControls.prototype.notifyStatusChanged = function(status) {
       console.log('sendMediaPlayStatus error');
     };
   }
+  // If IAC exists, we will also notify the status to the requester.
 };
