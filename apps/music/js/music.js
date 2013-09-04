@@ -586,6 +586,9 @@ var ModeManager = {
         if (!playerLoaded) {
           PlayerView.init();
           PlayerView.setOptions(playerSettings);
+          mrc.setUpdateStatusHandler(
+            PlayerView.updatePlayingStatus.bind(PlayerView)
+          );
         }
 
         if (callback)
@@ -1726,6 +1729,7 @@ function remoteEventHandler(event) {
     if (typeof PlayerView === 'undefined') {
       LazyLoader.load('js/Player.js', function() {
         PlayerView.init();
+        PlayerView.setOptions(playerSettings);
         mrc.setUpdateStatusHandler(
           PlayerView.updatePlayingStatus.bind(PlayerView)
         );
@@ -1786,7 +1790,7 @@ function remoteEventHandler(event) {
         PlayerView.setShuffle(true);
         PlayerView.play(PlayerView.shuffledList[0]);
 
-        ModeManager.start(MODE_PLAYER);
+        ModeManager.push(MODE_PLAYER);
       });
     }
   }

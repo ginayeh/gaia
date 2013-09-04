@@ -46,11 +46,16 @@ var REMOTE_CONTORLS = {
 function MediaRemoteControls() {
   this.bluetooth = navigator.mozBluetooth;
   this.defaultAdapter = null;
-  this.updateHandler = null;
+  this.updateMetadataHandler = null;
+  this.updateStatusHandler = null;
 }
 
+MediaRemoteControls.prototype.setUpdateMetadataHandler = function(handler) {
+  this.updateMetadataHandler = handler;
+};
+
 MediaRemoteControls.prototype.setUpdateStatusHandler = function(handler) {
-  this.updateHandler = handler;
+  this.updateStatusHandler = handler;
 };
 
 MediaRemoteControls.prototype.start = function() {
@@ -65,20 +70,29 @@ MediaRemoteControls.prototype.start = function() {
     // Get the default adapter at start because bluetooth might already enabled.
     initialDefaultAdapter.call(this);
   } else {
-    console.log('No mozBluetooth');
+    console.warn('No mozBluetooth');
   }
 
   function initialDefaultAdapter() {
-    var request = this.defaultAdapter = this.bluetooth.getDefaultAdapter();
-    var self = this;
-    request.onsuccess = function() {
-      self.defaultAdapter = request.result;
-      self.defaultAdapter.onrequestmediaplaystatus = self.updateHandler;
-      console.log('Got default adapter');
-    };
-    request.onerror = function() {
-      console.log('Cannot get default adapter');
-    };
+    var request = this.bluetooth.getDefaultAdapter();
+    request.onsuccess = configureAdapter.bind(this);
+    request.onerror = resetDefaultAdapter.bind(this);
+  }
+
+  function configureAdapter(event) {
+    this.defaultAdapter = event.target.result;
+    this.defaultAdapter.onrequestmediaplaystatus = this.updateStatusHandler;
+    this.defaultAdapter.ona2dpstatuschanged = a2dpConnectionHandler.bind(this);
+  }
+
+  // A2DP is connected: update the status to the bluetooth device.
+  // A2DP is disconnected: pause the player like the headphone is unplugged.
+  function a2dpConnectionHandler(event) {
+    var isConnected = event.status;
+    if (isConnected && this.updateStatusHandler)
+      this.updateStatusHandler();
+    else
+      this._commandHandler(AVRCP.PAUSE_PRESS);
   }
 
   function resetDefaultAdapter() {
