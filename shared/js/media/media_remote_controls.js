@@ -81,16 +81,20 @@ MediaRemoteControls.prototype.start = function() {
 
   function configureAdapter(event) {
     this.defaultAdapter = event.target.result;
-    this.defaultAdapter.onrequestmediaplaystatus = this.updateStatusHandler;
+    this.defaultAdapter.onrequestmediaplaystatus = playstatusHandler.bind(this);
     this.defaultAdapter.ona2dpstatuschanged = a2dpConnectionHandler.bind(this);
+  }
+
+  function playstatusHandler() {
+    this.updateStatusHandler();
   }
 
   // A2DP is connected: update the status to the bluetooth device.
   // A2DP is disconnected: pause the player like the headphone is unplugged.
   function a2dpConnectionHandler(event) {
     var isConnected = event.status;
-    if (isConnected && this.updateStatusHandler)
-      this.updateStatusHandler();
+    if (isConnected && this.updateMetadataHandler)
+      this.updateMetadataHandler();
     else
       this._commandHandler(AVRCP.PAUSE_PRESS);
   }

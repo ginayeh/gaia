@@ -103,6 +103,7 @@ var PlayerView = {
     this.isPlaying = false;
     this.isSeeking = false;
     this.isStopped = true;
+    this.pausedPosition = null;
     this.dataSource = [];
     this.playingBlob = null;
     this.currentIndex = 0;
@@ -369,7 +370,8 @@ var PlayerView = {
     var info = {
       playStatus: null,
       duration: this.audio.duration * 1000,
-      position: this.audio.currentTime * 1000
+      position: this.pausedPosition ? this.pausedPosition * 1000 :
+                                      this.audio.currentTime * 1000
     };
 
     // 'STOPPED'/'PLAYING'/'PAUSED'/'FWD_SEEK'/'REV_SEEK'/'ERROR'
@@ -379,6 +381,12 @@ var PlayerView = {
       info.playStatus = 'PLAYING';
     else if (!this.isPlaying)
       info.playStatus = 'PAUSED';
+
+    // Before we resume the player, we need to keep the paused position
+    // because once the connected A2DP device receives different positions
+    // on AFTER paused and BEFORE playing, it will break the play/pause states
+    // that the A2DP device kept.
+    this.pausedPosition = this.isPlaying ? null : this.audio.currentTime;
 
     // Notify the remote device that status is changed.
     mrc.notifyStatusChanged(info);
@@ -412,8 +420,6 @@ var PlayerView = {
         if (this.sourceType === TYPE_SINGLE)
           this.pause();
       }.bind(this));
-
-      this.updateMetadataStatus();
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // When we have to play a blob, we need to parse the metadata
       this.getMetadata(this.dataSource, function(metadata) {
@@ -737,6 +743,14 @@ var PlayerView = {
       case 'timeupdate':
         if (!this.isSeeking)
           this.updateSeekBar();
+
+        // Update both the metadata and play status when the track is really
+        // loaded and started to play, or the duration will be 0 then it will
+        // break the duration that the connected A2DP has.
+        if (evt.type === 'durationchange' || this.audio.currentTime === 0) {
+          this.updateMetadataStatus();
+          this.updatePlayingStatus();
+        }
 
         // Since we don't always get reliable 'ended' events, see if
         // we've reached the end this way.

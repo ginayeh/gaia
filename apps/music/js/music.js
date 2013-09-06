@@ -586,6 +586,9 @@ var ModeManager = {
         if (!playerLoaded) {
           PlayerView.init();
           PlayerView.setOptions(playerSettings);
+          mrc.setUpdateMetadataHandler(
+            PlayerView.updateMetadataStatus.bind(PlayerView)
+          );
           mrc.setUpdateStatusHandler(
             PlayerView.updatePlayingStatus.bind(PlayerView)
           );
@@ -1730,6 +1733,9 @@ function remoteEventHandler(event) {
       LazyLoader.load('js/Player.js', function() {
         PlayerView.init();
         PlayerView.setOptions(playerSettings);
+        mrc.setUpdateMetadataHandler(
+          PlayerView.updateMetadataStatus.bind(PlayerView)
+        );
         mrc.setUpdateStatusHandler(
           PlayerView.updatePlayingStatus.bind(PlayerView)
         );
