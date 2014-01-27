@@ -249,6 +249,11 @@ var Connectivity = (function(window, document, undefined) {
         handlePairingRequest(message);
       }
     );
+
+    navigator.mozSetMessageHandler('example-system-message', function(message){
+      dump('Receive system message of type \'example-system-message\'');
+      dump('value: ' + message.value);
+    });
   }
 
   /**
